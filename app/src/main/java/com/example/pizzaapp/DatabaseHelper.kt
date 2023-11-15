@@ -1,10 +1,13 @@
 package com.example.pizzaapp
 
+import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.widget.Toast
 
-class DatabaseHelper(context: Context): SQLiteOpenHelper(
+class DatabaseHelper(var context: Context): SQLiteOpenHelper(
     context,DATABASE_NAME, null,DATABASE_VERSION
 ) {
     companion object{
@@ -56,5 +59,48 @@ class DatabaseHelper(context: Context): SQLiteOpenHelper(
             return true
         else
             return false
+    }
+
+    fun addAccount(email: String, name:String, level:String, password: String){
+        val db = this.readableDatabase
+
+        val values = ContentValues()
+        values.put(COLUMN_EMAIL, email)
+        values.put(COLUMN_NAME, name)
+        values.put(COLUMN_LEVEL, level)
+        values.put(COLUMN_PASSWORD, password)
+
+        val result = db.insert(TABLE_ACCOUNT, null, values)
+        if (result==(0).toLong()){
+            Toast.makeText(context, "Register Failed", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Register Success, " +
+            "please login using your new account", Toast.LENGTH_SHORT).show()
+        }
+        db.close()
+    }
+
+    @SuppressLint("Range")
+    fun checkData(email: String):String{
+        val colums = arrayOf(COLUMN_NAME)
+        val db = this.readableDatabase
+        val selection = "$COLUMN_EMAIL = ?"
+        val selectionArgs = arrayOf(email)
+        var name:String = ""
+
+        val cursor = db.query(TABLE_ACCOUNT,
+        colums,
+        selection,
+        selectionArgs,
+        null,
+        null,
+        null)
+
+        if (cursor.moveToFirst()){
+            name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME))
+        }
+        cursor.close()
+        db.close()
+        return name
     }
 }
